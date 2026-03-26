@@ -726,64 +726,290 @@ body {
     outline-offset: 2px;
 }
 
+/* Mobile Optimization */
 @media (max-width: 768px) {
     body {
-        padding: 12px;
+        padding: 8px;
+    }
+    
+    .container {
+        max-width: 100%;
+    }
+    
+    /* Header - Compact */
+    .header {
+        padding: 20px 0 24px;
+    }
+    
+    .logo {
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+    
+    .logo-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 22px;
+        border-radius: 12px;
     }
     
     .header h1 { 
-        font-size: 1.8rem; 
+        font-size: 1.5rem;
+        line-height: 1.2;
     }
     
     .header p {
-        font-size: 1rem;
+        font-size: 0.85rem;
+        margin-top: 6px;
+        padding: 0 10px;
     }
     
+    /* Card - Reduced padding */
     .card {
-        padding: 20px;
+        padding: 16px;
+        border-radius: 16px;
     }
     
+    /* Input - Stack vertically with better touch targets */
     .input-wrapper { 
-        flex-direction: column; 
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 16px;
     }
     
+    .input-field {
+        padding: 14px 16px;
+        font-size: 0.95rem;
+        border-radius: 12px;
+        min-height: 48px; /* Touch target */
+    }
+    
+    /* Buttons - Full width with proper touch targets */
+    .btn {
+        width: 100%;
+        justify-content: center;
+        padding: 14px 20px;
+        font-size: 0.95rem;
+        border-radius: 12px;
+        min-height: 48px; /* Touch target */
+    }
+    
+    .btn-small {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+        min-height: 44px;
+    }
+    
+    /* Error and Progress - Compact */
+    .error-box {
+        padding: 12px 14px;
+        font-size: 0.9rem;
+        border-radius: 10px;
+        margin-top: 12px;
+    }
+    
+    .progress-box {
+        padding: 16px;
+        margin-top: 16px;
+        border-radius: 12px;
+    }
+    
+    .progress-info {
+        font-size: 0.85rem;
+    }
+    
+    /* Result Section - Compact */
+    .result-section {
+        margin-top: 20px;
+    }
+    
+    /* Video Preview - Stack vertically */
     .video-preview { 
-        flex-direction: column; 
+        flex-direction: column;
+        gap: 16px;
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 16px;
     }
     
     .thumbnail { 
-        width: 100%; 
-        height: auto; 
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16/9;
+        border-radius: 10px;
     }
     
+    .video-info h3 {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+        line-height: 1.3;
+    }
+    
+    .video-meta {
+        gap: 8px;
+        font-size: 0.8rem;
+    }
+    
+    .video-meta span {
+        padding: 5px 10px;
+        font-size: 0.8rem;
+    }
+    
+    .playlist-badge {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        margin-top: 10px;
+    }
+    
+    /* Tabs - Full width */
     .tabs { 
-        width: 100%; 
+        width: 100%;
+        padding: 4px;
+        gap: 4px;
+        border-radius: 12px;
+        margin-bottom: 16px;
     }
     
     .tab-btn { 
         flex: 1; 
         text-align: center;
-        padding: 10px 16px;
-        font-size: 0.9rem;
+        padding: 10px 12px;
+        font-size: 0.85rem;
+        border-radius: 8px;
+        min-height: 40px;
+    }
+    
+    /* Option Cards - Compact */
+    .option-card {
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+    }
+    
+    .option-card h4 {
+        font-size: 1rem;
+        margin-bottom: 6px;
+        gap: 8px;
+    }
+    
+    .option-card p {
+        font-size: 0.85rem;
+        margin-bottom: 12px;
+    }
+    
+    /* Quality Items - Stack vertically */
+    .quality-chips {
+        gap: 10px;
+        margin-top: 12px;
     }
     
     .quality-item {
         flex-direction: column;
         align-items: stretch;
-        gap: 12px;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 10px;
     }
     
     .quality-info {
         justify-content: space-between;
+        gap: 12px;
+    }
+    
+    .quality-label {
+        font-size: 1rem;
+        min-width: 50px;
+    }
+    
+    .quality-resolution {
+        font-size: 0.8rem;
+        padding: 3px 10px;
     }
     
     .quality-download-btn {
         width: 100%;
+        min-width: auto;
+    }
+    
+    /* Download Area - Compact */
+    .download-area {
+        padding: 20px 16px;
+        border-radius: 12px;
+        margin-top: 16px;
+    }
+    
+    .download-area h4 {
+        font-size: 1rem;
+        margin-bottom: 12px;
+    }
+    
+    /* Footer - Compact */
+    .footer {
+        margin-top: 30px;
+        padding: 20px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .footer p {
+        margin: 6px 0;
+    }
+    
+    /* Disable hover effects on mobile */
+    .card:hover,
+    .video-preview:hover,
+    .option-card:hover,
+    .quality-item:hover {
+        transform: none;
+    }
+    
+    .thumbnail:hover {
+        transform: none;
+    }
+    
+    .logo-icon:hover {
+        transform: none;
+    }
+}
+
+/* Extra small devices (phones in portrait, less than 375px) */
+@media (max-width: 374px) {
+    body {
+        padding: 6px;
+    }
+    
+    .header h1 {
+        font-size: 1.3rem;
+    }
+    
+    .header p {
+        font-size: 0.8rem;
+    }
+    
+    .card {
+        padding: 12px;
+    }
+    
+    .input-field {
+        padding: 12px 14px;
+        font-size: 0.9rem;
     }
     
     .btn {
-        width: 100%;
-        justify-content: center;
+        padding: 12px 16px;
+        font-size: 0.9rem;
+    }
+    
+    .video-info h3 {
+        font-size: 1rem;
+    }
+    
+    .quality-label {
+        font-size: 0.95rem;
+    }
+    
+    .tab-btn {
+        padding: 8px 10px;
+        font-size: 0.8rem;
     }
 }
 
