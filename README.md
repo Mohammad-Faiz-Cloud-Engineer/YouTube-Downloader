@@ -21,10 +21,34 @@ A full-featured YouTube video and audio downloader with a modern web interface.
 
 ## Installation
 
+### Option 1: Docker (Recommended)
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/Mohammad-Faiz-Cloud-Engineer/YouTube-Downloader.git
-cd yt-downloader
+cd YouTube-Downloader
+```
+
+2. Start with Docker Compose:
+```bash
+docker-compose up -d
+```
+
+3. Access the application at `http://localhost:3000`
+
+**Docker Commands:**
+```bash
+docker-compose logs -f        # View logs
+docker-compose down           # Stop application
+docker-compose restart        # Restart application
+```
+
+### Option 2: Manual Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/Mohammad-Faiz-Cloud-Engineer/YouTube-Downloader.git
+cd YouTube-Downloader
 ```
 
 2. Install dependencies:
@@ -76,13 +100,20 @@ http://localhost:3000
 ## Project Structure
 
 ```
-yt-downloader/
-├── server.js           # Express server and API endpoints
+YouTube-Downloader/
+├── server.js              # Express server and API endpoints
 ├── public/
-│   └── index.html     # Frontend UI
-├── downloads/         # Temporary download directory
-├── package.json       # Project dependencies
-└── README.md         # This file
+│   ├── index.html        # Frontend UI
+│   ├── script.js         # Client-side JavaScript
+│   └── style.css         # Styling
+├── downloads/            # Temporary download directory
+├── Dockerfile            # Production Docker configuration
+├── docker-compose.yml    # Docker Compose configuration
+├── package.json          # Project dependencies
+├── .eslintrc.json        # ESLint configuration
+├── .prettierrc.json      # Prettier configuration
+├── .gitignore            # Git ignore rules
+└── README.md             # This file
 ```
 
 ## API Endpoints
