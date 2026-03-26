@@ -1,20 +1,23 @@
-/**
- * YouTube Downloader
- * Creator & Author: Mohammad Faiz
- * Repository: https://github.com/Mohammad-Faiz-Cloud-Engineer/YouTube-Downloader
- */
-
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const { spawn } = require('child_process');
+const { spawn, exec } = require('child_process');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Security headers
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    next();
+});
+
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 app.use(express.static('public'));
 
 const DOWNLOADS_DIR = path.join(__dirname, 'downloads');
@@ -38,7 +41,9 @@ if (!fs.existsSync(DOWNLOADS_DIR)) {
 }
 
 function getVideoId(url) {
-    if (!url || typeof url !== 'string') return null;
+    if (!url || typeof url !== 'string') {
+        return null;
+    }
     
     const patterns = [
         /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([a-zA-Z0-9_-]{11})/,
@@ -47,26 +52,31 @@ function getVideoId(url) {
     
     for (const pattern of patterns) {
         const match = url.match(pattern);
-        if (match) return match[1];
+        if (match) {
+            return match[1] || match[0];
+        }
     }
     return null;
 }
 
 function getPlaylistId(url) {
-    if (!url || typeof url !== 'string') return null;
+    if (!url || typeof url !== 'string') {
+        return null;
+    }
     const match = url.match(/list=([a-zA-Z0-9_-]+)/);
     return match ? match[1] : null;
 }
 
 function sanitizeFilename(title) {
-    if (!title || typeof title !== 'string') return 'video';
+    if (!title || typeof title !== 'string') {
+        return 'video';
+    }
     
-    // Remove special characters and limit length
     return title
         .trim()
-        .replace(/[<>:"/\\|?*\x00-\x1F]/g, '') // Remove invalid filename characters
-        .replace(/\s+/g, '_') // Replace spaces with underscores
-        .replace(/_{2,}/g, '_') // Replace multiple underscores with single
+        .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
+        .replace(/\s+/g, '_')
+        .replace(/_{2,}/g, '_')
         .substring(0, MAX_TITLE_LENGTH);
 }
 
@@ -76,7 +86,7 @@ function cleanupFile(filepath) {
             fs.unlinkSync(filepath);
         }
     } catch (error) {
-        // Silent cleanup failure
+        console.error(`Cleanup failed for ${filepath}:`, error.message);
     }
 }
 
@@ -452,9 +462,11 @@ app.post('/api/download/playlist', async (req, res) => {
     }
 });
 
+const { exec } = require('child_process');
+
+const { exec } = require('child_process');
+
 app.listen(PORT, () => {
-    // Check for ffmpeg availability on startup
-    const { exec } = require('child_process');
     exec('ffmpeg -version', (error) => {
         const separator = '='.repeat(60);
         if (error) {
