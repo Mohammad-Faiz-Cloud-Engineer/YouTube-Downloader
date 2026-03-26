@@ -115,7 +115,7 @@ function execYtdl(args) {
     });
 }
 
-app.get('/', (_req, res) => {
+app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
@@ -461,10 +461,6 @@ app.post('/api/download/playlist', async (req, res) => {
         res.status(400).json({ error: `Playlist download failed: ${error.message}` });
     }
 });
-
-const { exec } = require('child_process');
-
-const { exec } = require('child_process');
 
 app.listen(PORT, () => {
     exec('ffmpeg -version', (error) => {
