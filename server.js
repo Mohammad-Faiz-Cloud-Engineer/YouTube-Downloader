@@ -20,7 +20,6 @@ app.use(express.static('public'));
 const DOWNLOADS_DIR = path.join(__dirname, 'downloads');
 const YT_DLP_BIN = path.join(__dirname, 'node_modules', 'youtube-dl-exec', 'bin', 'yt-dlp');
 const MAX_TITLE_LENGTH = 100;
-const VIDEO_ID_LENGTH = 11;
 const CLEANUP_DELAY = 5000;
 
 if (!fs.existsSync(DOWNLOADS_DIR)) {
@@ -180,6 +179,10 @@ app.post('/api/download/video', async (req, res) => {
             return res.status(400).json({ error: 'URL is required' });
         }
         
+        if (!quality || typeof quality !== 'string') {
+            return res.status(400).json({ error: 'Quality format is required' });
+        }
+        
         if (!getVideoId(url)) {
             return res.status(400).json({ error: 'Invalid YouTube URL' });
         }
@@ -193,8 +196,13 @@ app.post('/api/download/video', async (req, res) => {
 
         const outputPath = path.join(DOWNLOADS_DIR, `${title}.mp4`);
 
+        // Use the selected quality format with best audio
+        // Format: video[format_id]+bestaudio/best ensures high quality video with audio
+        const formatString = `${quality}+bestaudio[ext=m4a]/bestaudio`;
+        
         await execYtdl([
-            '-f', '18',
+            '-f', formatString,
+            '--merge-output-format', 'mp4',
             '--no-check-certificate',
             '--no-playlist',
             '--no-warnings',
@@ -205,15 +213,19 @@ app.post('/api/download/video', async (req, res) => {
         let finalFile = '';
         let finalPath = '';
         
-        const downloadedFiles = fs.readdirSync(DOWNLOADS_DIR).filter(f => !f.endsWith('.part'));
+        const downloadedFiles = fs.readdirSync(DOWNLOADS_DIR).filter(f => !f.endsWith('.part') && !f.endsWith('.temp'));
         
         for (const f of downloadedFiles) {
-            if (f.includes(title) || title.includes(f.replace(/\.[^.]+$/, '').split('.')[0])) {
+            if (f.includes(title)) {
                 const filePath = path.join(DOWNLOADS_DIR, f);
                 const ext = path.extname(f).toLowerCase();
-                const baseName = path.basename(f, ext);
                 
-                if (ext !== '.mp4' || baseName.includes('.f')) {
+                if (ext === '.mp4') {
+                    finalFile = f;
+                    finalPath = filePath;
+                    break;
+                } else if (ext === '.mkv' || ext === '.webm') {
+                    // Rename non-mp4 to mp4
                     const cleanName = `${title}.mp4`;
                     const newPath = path.join(DOWNLOADS_DIR, cleanName);
                     if (!fs.existsSync(newPath)) {
@@ -221,11 +233,8 @@ app.post('/api/download/video', async (req, res) => {
                     }
                     finalFile = cleanName;
                     finalPath = newPath;
-                } else {
-                    finalFile = f;
-                    finalPath = filePath;
+                    break;
                 }
-                break;
             }
         }
 
@@ -240,6 +249,12 @@ app.post('/api/download/video', async (req, res) => {
         fileStream.pipe(res);
 
         fileStream.on('close', () => cleanupFile(finalPath));
+        fileStream.on('error', (err) => {
+            cleanupFile(finalPath);
+            if (!res.headersSent) {
+                res.status(500).json({ error: 'Stream error occurred' });
+            }
+        });
 
     } catch (error) {
         res.status(400).json({ error: `Download failed: ${error.message}` });
@@ -324,42 +339,35 @@ app.post('/api/download/playlist', async (req, res) => {
             return res.status(400).json({ error: 'URL is required' });
         }
         
+        if (!quality || typeof quality !== 'string') {
+            return res.status(400).json({ error: 'Quality format is required' });
+        }
+        
         const playlistId = getPlaylistId(url);
         
         if (!playlistId) {
             return res.status(400).json({ error: 'Invalid playlist URL' });
         }
 
-        const formatStr = (quality === 'best' || !quality) 
-            ? 'best[ext=mp4]/best' 
-            : `${quality}+bestaudio/best[ext=mp4]/best`;
+        // Use selected quality with best audio for high quality output
+        const formatStr = `${quality}+bestaudio[ext=m4a]/bestaudio`;
 
-        try {
-            await execYtdl([
-                '-f', formatStr,
-                '--yes-playlist',
-                '--no-check-certificate',
-                '--no-warnings',
-                '-o', path.join(DOWNLOADS_DIR, '%(title)s.%(ext)s'),
-                `https://www.youtube.com/playlist?list=${playlistId}`
-            ]);
-        } catch (e) {
-            await execYtdl([
-                '-f', 'best',
-                '--yes-playlist',
-                '--no-check-certificate',
-                '--no-warnings',
-                '-o', path.join(DOWNLOADS_DIR, '%(title)s.%(ext)s'),
-                `https://www.youtube.com/playlist?list=${playlistId}`
-            ]);
-        }
+        await execYtdl([
+            '-f', formatStr,
+            '--merge-output-format', 'mp4',
+            '--yes-playlist',
+            '--no-check-certificate',
+            '--no-warnings',
+            '-o', path.join(DOWNLOADS_DIR, '%(title)s.%(ext)s'),
+            `https://www.youtube.com/playlist?list=${playlistId}`
+        ]);
 
         const files = fs.readdirSync(DOWNLOADS_DIR).filter(f => !f.endsWith('.part') && !f.startsWith('temp_'));
         
         res.json({
             success: true,
             count: files.length,
-            message: `Downloaded ${files.length} videos`
+            message: `Downloaded ${files.length} videos in high quality`
         });
 
     } catch (error) {
