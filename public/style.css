@@ -502,12 +502,6 @@ body {
     animation: fadeIn 0.4s ease;
 }
 
-.options-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
-}
-
 .option-card {
     background: var(--bg-hover);
     border-radius: 16px;
@@ -558,9 +552,55 @@ body {
 
 .quality-chips {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 16px;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.quality-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: var(--transition);
+    gap: 16px;
+}
+
+.quality-item:hover {
+    background: rgba(0,0,0,0.4);
+    border-color: rgba(255,71,87,0.3);
+    transform: translateX(4px);
+    box-shadow: var(--shadow-sm);
+}
+
+.quality-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+}
+
+.quality-label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+    min-width: 60px;
+}
+
+.quality-resolution {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    padding: 4px 12px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+}
+
+.quality-download-btn {
+    white-space: nowrap;
+    min-width: 120px;
 }
 
 .quality-chip {
@@ -584,17 +624,6 @@ body {
 
 .quality-chip:active {
     transform: translateY(0);
-}
-
-.quality-chip.best {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    border: none;
-    color: white;
-    box-shadow: 0 4px 12px rgba(255,71,87,0.3);
-}
-
-.quality-chip.best:hover {
-    box-shadow: 0 6px 16px rgba(255,71,87,0.4);
 }
 
 .download-area {
@@ -738,8 +767,18 @@ body {
         font-size: 0.9rem;
     }
     
-    .options-grid {
-        grid-template-columns: 1fr;
+    .quality-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .quality-info {
+        justify-content: space-between;
+    }
+    
+    .quality-download-btn {
+        width: 100%;
     }
     
     .btn {
