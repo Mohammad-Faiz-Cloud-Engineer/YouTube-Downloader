@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -58,29 +59,15 @@
                 </div>
 
                 <div class="tab-content active" id="videoTab">
-                    <div class="options-grid">
-                        <div class="option-card">
-                            <h4>Best Quality</h4>
-                            <p>Download in highest available quality</p>
-                            <button class="btn btn-primary btn-small" onclick="downloadVideo('best')">
-                                Download (Best)
-                            </button>
-                        </div>
-                        <div class="option-card">
-                            <h4>Custom Quality</h4>
-                            <p>Choose your preferred resolution</p>
-                            <div class="quality-chips" id="qualityChips"></div>
-                        </div>
+                    <div class="option-card">
+                        <h4>Select Video Quality</h4>
+                        <p>Choose your preferred resolution to download</p>
+                        <div class="quality-chips" id="qualityChips"></div>
                     </div>
                     <div class="option-card" id="playlistCard" style="margin-top: 16px; display: none;">
                         <h4>Playlist Download</h4>
                         <p>Download entire playlist in selected quality</p>
-                        <div class="quality-chips">
-                            <button class="quality-chip best" onclick="downloadPlaylist('best')">Best</button>
-                            <button class="quality-chip" onclick="downloadPlaylist('137')">1080p</button>
-                            <button class="quality-chip" onclick="downloadPlaylist('136')">720p</button>
-                            <button class="quality-chip" onclick="downloadPlaylist('135')">480p</button>
-                        </div>
+                        <div class="quality-chips" id="playlistChips"></div>
                     </div>
                 </div>
 
