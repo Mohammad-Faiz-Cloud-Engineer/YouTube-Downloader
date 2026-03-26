@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Downloader | MP4 & MP3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <h1>YouTube Downloader</h1>
+            </div>
+            <p>Download videos in multiple qualities - MP4 & MP3</p>
+        </div>
+
+        <div class="card">
+            <div class="input-wrapper">
+                <input type="text" id="urlInput" class="input-field" placeholder="Paste YouTube URL (video or playlist)...">
+                <button class="btn btn-primary" id="getInfoBtn" onclick="getVideoInfo()">
+                    Get Video
+                </button>
+            </div>
+
+            <div class="error-box" id="errorBox"></div>
+
+            <div class="progress-box" id="progressBox">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-info">
+                    <span id="progressText">Preparing download...</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+            </div>
+
+            <div class="result-section" id="resultSection">
+                <div class="video-preview">
+                    <img class="thumbnail" id="videoThumbnail" src="" alt="Thumbnail">
+                    <div class="video-info">
+                        <h3 id="videoTitle">Video Title</h3>
+                        <div class="video-meta">
+                            <span id="videoChannel">-</span>
+                            <span id="videoDuration">-</span>
+                        </div>
+                        <div class="playlist-badge" id="playlistBadge" style="display: none;">
+                            Playlist - <span id="playlistCount">0</span> videos
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('video')">Video</button>
+                    <button class="tab-btn" onclick="switchTab('audio')">Audio (MP3)</button>
+                </div>
+
+                <div class="tab-content active" id="videoTab">
+                    <div class="options-grid">
+                        <div class="option-card">
+                            <h4>Best Quality</h4>
+                            <p>Download in highest available quality</p>
+                            <button class="btn btn-primary btn-small" onclick="downloadVideo('best')">
+                                Download (Best)
+                            </button>
+                        </div>
+                        <div class="option-card">
+                            <h4>Custom Quality</h4>
+                            <p>Choose your preferred resolution</p>
+                            <div class="quality-chips" id="qualityChips"></div>
+                        </div>
+                    </div>
+                    <div class="option-card" id="playlistCard" style="margin-top: 16px; display: none;">
+                        <h4>Playlist Download</h4>
+                        <p>Download entire playlist in selected quality</p>
+                        <div class="quality-chips">
+                            <button class="quality-chip best" onclick="downloadPlaylist('best')">Best</button>
+                            <button class="quality-chip" onclick="downloadPlaylist('137')">1080p</button>
+                            <button class="quality-chip" onclick="downloadPlaylist('136')">720p</button>
+                            <button class="quality-chip" onclick="downloadPlaylist('135')">480p</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="audioTab">
+                    <div class="options-grid">
+                        <div class="option-card">
+                            <h4>MP3 Audio</h4>
+                            <p>Extract audio as high quality MP3 (320kbps)</p>
+                            <button class="btn btn-primary btn-small" onclick="downloadAudio()">
+                                Download MP3
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="download-area" id="downloadArea">
+                    <h4>Download Complete!</h4>
+                    <a id="downloadLink" href="#" class="btn btn-primary" download>
+                        Save File
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
