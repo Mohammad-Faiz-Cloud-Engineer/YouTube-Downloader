@@ -20,16 +20,27 @@
 
         <div class="card">
             <div class="input-wrapper">
-                <input type="text" id="urlInput" class="input-field" placeholder="Paste YouTube URL (video or playlist)...">
-                <button class="btn btn-primary" id="getInfoBtn" onclick="getVideoInfo()">
+                <input 
+                    type="url" 
+                    id="urlInput" 
+                    class="input-field" 
+                    placeholder="Paste YouTube URL (video or playlist)..."
+                    aria-label="YouTube URL input"
+                    autocomplete="off"
+                    spellcheck="false">
+                <button 
+                    class="btn btn-primary" 
+                    id="getInfoBtn" 
+                    onclick="getVideoInfo()"
+                    aria-label="Fetch video information">
                     Get Video
                 </button>
             </div>
 
-            <div class="error-box" id="errorBox"></div>
+            <div class="error-box" id="errorBox" role="alert" aria-live="polite"></div>
 
-            <div class="progress-box" id="progressBox">
-                <div class="progress-bar">
+            <div class="progress-box" id="progressBox" role="status" aria-live="polite">
+                <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
                     <div class="progress-fill" id="progressFill"></div>
                 </div>
                 <div class="progress-info">
@@ -54,8 +65,8 @@
                 </div>
 
                 <div class="tabs">
-                    <button class="tab-btn active" onclick="switchTab('video')">Video</button>
-                    <button class="tab-btn" onclick="switchTab('audio')">Audio (MP3)</button>
+                    <button class="tab-btn active" onclick="switchTab(event, 'video')" aria-label="Video download tab">Video</button>
+                    <button class="tab-btn" onclick="switchTab(event, 'audio')" aria-label="Audio download tab">Audio (MP3)</button>
                 </div>
 
                 <div class="tab-content active" id="videoTab">
@@ -72,14 +83,12 @@
                 </div>
 
                 <div class="tab-content" id="audioTab">
-                    <div class="options-grid">
-                        <div class="option-card">
-                            <h4>MP3 Audio</h4>
-                            <p>Extract audio as high quality MP3 (320kbps)</p>
-                            <button class="btn btn-primary btn-small" onclick="downloadAudio()">
-                                Download MP3
-                            </button>
-                        </div>
+                    <div class="option-card">
+                        <h4>MP3 Audio</h4>
+                        <p>Extract audio as high quality MP3 (320kbps)</p>
+                        <button class="btn btn-primary btn-small" onclick="downloadAudio()" aria-label="Download audio as MP3">
+                            Download MP3
+                        </button>
                     </div>
                 </div>
 
