@@ -1,0 +1,30 @@
+# Development Dockerfile with hot-reload support
+FROM node:18-alpine
+
+# Install FFmpeg and development tools
+RUN apk add --no-cache \
+    ffmpeg \
+    python3 \
+    py3-pip \
+    git \
+    && rm -rf /var/cache/apk/*
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev dependencies)
+RUN npm install
+
+# Copy application files
+COPY . .
+
+# Create downloads directory
+RUN mkdir -p downloads
+
+# Expose port
+EXPOSE 3000
+
+# Development command with nodemon for hot-reload
+CMD ["npm", "run", "dev"]
