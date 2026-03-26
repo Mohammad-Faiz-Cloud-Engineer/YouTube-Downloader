@@ -1,124 +1,118 @@
----
-title: YouTube Downloader
-emoji: 🎬
-colorFrom: red
-colorTo: gray
-sdk: docker
-app_port: 3000
-pinned: false
-license: mit
----
-
 # YouTube Downloader
-
-A full-featured YouTube video and audio downloader with a clean web interface. Download videos in multiple resolutions or extract audio as high-quality MP3.
-
-**Live Website:** [https://rox-turbo-yt.hf.space/](https://rox-turbo-yt.hf.space/)  
-**Author:** [Mohammad Faiz](https://github.com/Mohammad-Faiz-Cloud-Engineer)  
-**Repository:** [GitHub](https://github.com/Mohammad-Faiz-Cloud-Engineer/YouTube-Downloader)
-
----
-
+A full-featured YouTube video and audio downloader with a modern web interface.
+**Creator & Author:** Mohammad Faiz  
+**Repository:** [https://github.com/Mohammad-Faiz-Cloud-Engineer/YouTube-Downloader](https://github.com/Mohammad-Faiz-Cloud-Engineer/YouTube-Downloader)
 ## Features
-
-- Video downloads: 144p up to 4K
-- Audio extraction as MP3 (320kbps)
-- Playlist support
-- Real-time progress tracking
-- Auto cleanup of temporary files after download
-
----
-
-## Running on Hugging Face Spaces
-
-This Space uses the **Docker SDK**. It runs automatically — no setup needed on your end. Just use the interface above.
-
-> ⚠️ High-quality downloads (720p+) require FFmpeg, which is pre-installed in the Docker image.
-
----
-
-## Self-Hosting
-
-### Docker (Recommended)
-
+- Download YouTube videos in multiple quality options (144p, 240p, 360p, 480p, 720p, 1080p, 2K, 4K)
+- Extract audio as MP3 (320kbps)
+- Support for playlist downloads
+- Clean, modern UI with real-time progress tracking
+- Automatic file cleanup after download
+## Prerequisites
+- Node.js (v14 or higher)
+- npm or yarn
+- **FFmpeg** (REQUIRED for high-quality video downloads)
+## Installation
+### Option 1: Docker (Recommended)
+1. Clone the repository:
 ```bash
 git clone https://github.com/Mohammad-Faiz-Cloud-Engineer/YouTube-Downloader.git
 cd YouTube-Downloader
+```
+2. Start with Docker Compose:
+```bash
 docker-compose up -d
 ```
-
-App runs at `http://localhost:3000`
-
+3. Access the application at `http://localhost:3000`
+**Docker Commands:**
 ```bash
-docker-compose logs -f   # stream logs
-docker-compose down      # stop
-docker-compose restart   # restart
+docker-compose logs -f        # View logs
+docker-compose down           # Stop application
+docker-compose restart        # Restart application
 ```
-
-### Manual
-
-**Requirements:** Node.js v14+, npm, FFmpeg
-
+### Option 2: Manual Installation
+1. Clone the repository:
 ```bash
 git clone https://github.com/Mohammad-Faiz-Cloud-Engineer/YouTube-Downloader.git
 cd YouTube-Downloader
+```
+2. Install dependencies:
+```bash
 npm install
 ```
-
-**Install FFmpeg:**
-
-| OS | Command |
-|---|---|
-| Ubuntu/Debian | `sudo apt update && sudo apt install ffmpeg -y` |
-| macOS | `brew install ffmpeg` |
-| Windows | [Download from ffmpeg.org](https://ffmpeg.org/download.html), extract, add to PATH |
-
+3. **Install FFmpeg (CRITICAL):**
+**Ubuntu/Debian:**
 ```bash
-ffmpeg -version  # verify
-npm start        # then open http://localhost:3000
+sudo apt update && sudo apt install ffmpeg -y
 ```
-
----
-
-## API Reference
-
-| Endpoint | Method | Body | Returns |
-|---|---|---|---|
-| `/api/info` | POST | `{ url }` | Video metadata, thumbnail, available qualities |
-| `/api/download/video` | POST | `{ url, quality }` | Video file stream |
-| `/api/download/audio` | POST | `{ url }` | MP3 file stream |
-| `/api/download/playlist` | POST | `{ url, quality }` | Download status and count |
-
-**Environment variable:** `PORT` (default: `3000`)
-
----
-
+**macOS:**
+```bash
+brew install ffmpeg
+```
+**Windows:**
+- Download from https://ffmpeg.org/download.html
+- Extract and add to PATH
+**Verify installation:**
+```bash
+ffmpeg -version
+```
+> ⚠️ **Important:** Without FFmpeg, high-quality downloads (720p+) will fail or have no audio. FFmpeg is required to merge video and audio streams.
+## Usage
+1. Start the server:
+```bash
+npm start
+```
+2. Open your browser and navigate to:
+```
+http://localhost:3000
+```
+3. Paste a YouTube URL and select your preferred download option
+## Environment Variables
+- `PORT` - Server port (default: 3000)
 ## Project Structure
-
 ```
 YouTube-Downloader/
-├── server.js
+├── server.js              # Express server and API endpoints
 ├── public/
-│   ├── index.html
-│   ├── script.js
-│   └── style.css
-├── downloads/
-├── Dockerfile
-├── docker-compose.yml
-└── package.json
+│   ├── index.html        # Frontend UI
+│   ├── script.js         # Client-side JavaScript
+│   └── style.css         # Styling
+├── downloads/            # Temporary download directory
+├── Dockerfile            # Production Docker configuration
+├── docker-compose.yml    # Docker Compose configuration
+├── package.json          # Project dependencies
+├── .eslintrc.json        # ESLint configuration
+├── .prettierrc.json      # Prettier configuration
+├── .gitignore            # Git ignore rules
+└── README.md             # This file
 ```
-
----
-
-## Security
-
-- Inputs validated before processing
-- File paths sanitized against directory traversal
-- Temp files cleaned up automatically
-- No sensitive data logged
-
----
-
+## API Endpoints
+### POST /api/info
+Fetch video or playlist information
+- Body: `{ url: string }`
+- Returns: Video metadata, thumbnail, available qualities
+### POST /api/download/video
+Download video in specified quality
+- Body: `{ url: string, quality: string }`
+- Returns: Video file stream
+### POST /api/download/audio
+Extract and download audio as MP3
+- Body: `{ url: string }`
+- Returns: MP3 file stream
+### POST /api/download/playlist
+Download entire playlist
+- Body: `{ url: string, quality: string }`
+- Returns: Download status and count
+## Security Notes
+- All user inputs are validated before processing
+- File paths are sanitized to prevent directory traversal
+- Temporary files are automatically cleaned up after download
+- No sensitive data is logged
+## Author
+**Mohammad Faiz**
+- GitHub: [@Mohammad-Faiz-Cloud-Engineer](https://github.com/Mohammad-Faiz-Cloud-Engineer)
+- Repository: [YouTube-Downloader](https://github.com/Mohammad-Faiz-Cloud-Engineer/YouTube-Downloader)
 ## License
-
-MIT — pull requests welcome. Open an issue first for major changes.
+MIT
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
