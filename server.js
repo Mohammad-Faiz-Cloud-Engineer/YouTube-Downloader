@@ -49,7 +49,14 @@ function getPlaylistId(url) {
 
 function sanitizeFilename(title) {
     if (!title || typeof title !== 'string') return 'video';
-    return title.trim().replace(/[^a-zA-Z0-9]/g, '_').substring(0, MAX_TITLE_LENGTH);
+    
+    // Remove special characters and limit length
+    return title
+        .trim()
+        .replace(/[<>:"/\\|?*\x00-\x1F]/g, '') // Remove invalid filename characters
+        .replace(/\s+/g, '_') // Replace spaces with underscores
+        .replace(/_{2,}/g, '_') // Replace multiple underscores with single
+        .substring(0, MAX_TITLE_LENGTH);
 }
 
 function cleanupFile(filepath) {
@@ -87,7 +94,7 @@ function execYtdl(args) {
     });
 }
 
-app.get('/', (req, res) => {
+app.get('/', (_req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
@@ -244,17 +251,22 @@ app.post('/api/download/video', async (req, res) => {
 
         res.setHeader('Content-Disposition', `attachment; filename="${finalFile}"`);
         res.setHeader('Content-Type', 'video/mp4');
+        res.setHeader('Cache-Control', 'no-cache');
         
         const fileStream = fs.createReadStream(finalPath);
-        fileStream.pipe(res);
-
-        fileStream.on('close', () => cleanupFile(finalPath));
-        fileStream.on('error', (err) => {
+        
+        fileStream.on('error', (streamError) => {
             cleanupFile(finalPath);
             if (!res.headersSent) {
                 res.status(500).json({ error: 'Stream error occurred' });
             }
         });
+        
+        fileStream.on('close', () => {
+            cleanupFile(finalPath);
+        });
+        
+        fileStream.pipe(res);
 
     } catch (error) {
         res.status(400).json({ error: `Download failed: ${error.message}` });
@@ -290,7 +302,8 @@ app.post('/api/download/audio', async (req, res) => {
                 '-o', filepath,
                 url
             ]);
-        } catch (e) {
+        } catch (conversionError) {
+            // Fallback: download best audio format
             await execYtdl([
                 '-f', 'bestaudio',
                 '--no-check-certificate',
@@ -322,7 +335,13 @@ app.post('/api/download/audio', async (req, res) => {
         }
 
         res.setHeader('Content-Disposition', `attachment; filename="${actualFile}"`);
-        res.download(actualPath, actualFile, () => {
+        res.setHeader('Content-Type', 'audio/mpeg');
+        res.setHeader('Cache-Control', 'no-cache');
+        
+        res.download(actualPath, actualFile, (downloadError) => {
+            if (downloadError && !res.headersSent) {
+                res.status(500).json({ error: 'Download error occurred' });
+            }
             setTimeout(() => cleanupFile(actualPath), CLEANUP_DELAY);
         });
 
