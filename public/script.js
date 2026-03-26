@@ -1,3 +1,9 @@
+/**
+ * YouTube Downloader - Client Side Script
+ * Creator & Author: Mohammad Faiz
+ * Repository: https://github.com/Mohammad-Faiz-Cloud-Engineer/YouTube-Downloader
+ */
+
 let currentUrl = '';
 
 function showError(msg) {

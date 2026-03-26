@@ -2,6 +2,9 @@
 
 A full-featured YouTube video and audio downloader with a modern web interface.
 
+**Creator & Author:** Mohammad Faiz  
+**Repository:** [https://github.com/Mohammad-Faiz-Cloud-Engineer/YouTube-Downloader](https://github.com/Mohammad-Faiz-Cloud-Engineer/YouTube-Downloader)
+
 ## Features
 
 - Download YouTube videos in multiple quality options (360p, 480p, 720p, 1080p)
@@ -86,6 +89,12 @@ Download entire playlist
 - File paths are sanitized to prevent directory traversal
 - Temporary files are automatically cleaned up after download
 - No sensitive data is logged
+
+## Author
+
+**Mohammad Faiz**
+- GitHub: [@Mohammad-Faiz-Cloud-Engineer](https://github.com/Mohammad-Faiz-Cloud-Engineer)
+- Repository: [YouTube-Downloader](https://github.com/Mohammad-Faiz-Cloud-Engineer/YouTube-Downloader)
 
 ## License
 
