@@ -7,7 +7,7 @@ A full-featured YouTube video and audio downloader with a modern web interface.
 
 ## Features
 
-- Download YouTube videos in multiple quality options (360p, 480p, 720p, 1080p, 2K, 4K)
+- Download YouTube videos in multiple quality options (144p, 240p, 360p, 480p, 720p, 1080p, 2K, 4K)
 - Extract audio as MP3 (320kbps)
 - Support for playlist downloads
 - Clean, modern UI with real-time progress tracking
