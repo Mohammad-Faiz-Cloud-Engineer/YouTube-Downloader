@@ -1,3 +1,4 @@
+
 /**
  * YouTube Downloader - Client Side Script
  * Creator & Author: Mohammad Faiz
@@ -80,18 +81,55 @@ async function getVideoInfo() {
         
         if (data.qualities && data.qualities.length > 0) {
             data.qualities.forEach(q => {
-                const chip = document.createElement('button');
-                chip.className = 'quality-chip';
-                chip.textContent = q.resolution;
-                chip.onclick = () => downloadVideo(q.formatId);
-                qualityChips.appendChild(chip);
+                const listItem = document.createElement('div');
+                listItem.className = 'quality-item';
+                
+                const qualityLabel = `${q.height}p`;
+                const resolutionText = q.resolution;
+                
+                listItem.innerHTML = `
+                    <div class="quality-info">
+                        <span class="quality-label">${qualityLabel}</span>
+                        <span class="quality-resolution">${resolutionText}</span>
+                    </div>
+                    <button class="btn btn-primary btn-small quality-download-btn">Download</button>
+                `;
+                
+                listItem.querySelector('.quality-download-btn').onclick = () => downloadVideo(q.formatId);
+                qualityChips.appendChild(listItem);
             });
+        } else {
+            qualityChips.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">No quality options available</p>';
         }
 
         if (data.isPlaylist) {
             document.getElementById('playlistBadge').style.display = 'inline-flex';
             document.getElementById('playlistCount').textContent = data.playlistCount || data.videos?.length || 0;
             document.getElementById('playlistCard').style.display = 'block';
+            
+            const playlistChips = document.getElementById('playlistChips');
+            playlistChips.innerHTML = '';
+            
+            if (data.qualities && data.qualities.length > 0) {
+                data.qualities.forEach(q => {
+                    const listItem = document.createElement('div');
+                    listItem.className = 'quality-item';
+                    
+                    const qualityLabel = `${q.height}p`;
+                    const resolutionText = q.resolution;
+                    
+                    listItem.innerHTML = `
+                        <div class="quality-info">
+                            <span class="quality-label">${qualityLabel}</span>
+                            <span class="quality-resolution">${resolutionText}</span>
+                        </div>
+                        <button class="btn btn-primary btn-small quality-download-btn">Download</button>
+                    `;
+                    
+                    listItem.querySelector('.quality-download-btn').onclick = () => downloadPlaylist(q.formatId);
+                    playlistChips.appendChild(listItem);
+                });
+            }
         } else {
             document.getElementById('playlistBadge').style.display = 'none';
             document.getElementById('playlistCard').style.display = 'none';
