@@ -4,6 +4,34 @@
  * Repository: https://github.com/Mohammad-Faiz-Cloud-Engineer/YouTube-Downloader
  */
 
+// Constants
+const API_ENDPOINTS = {
+    INFO: '/api/info',
+    DOWNLOAD_VIDEO: '/api/download/video',
+    DOWNLOAD_AUDIO: '/api/download/audio',
+    DOWNLOAD_PLAYLIST: '/api/download/playlist'
+};
+
+const HTTP_HEADERS = {
+    CONTENT_TYPE: 'Content-Type',
+    CONTENT_DISPOSITION: 'Content-Disposition'
+};
+
+const ERROR_MESSAGES = {
+    NO_URL: 'Please enter a YouTube URL',
+    INVALID_URL: 'Please enter a valid YouTube URL',
+    FETCH_INFO_FIRST: 'Please fetch video information first',
+    INVALID_QUALITY: 'Invalid quality selection',
+    DOWNLOAD_FAILED: 'Download failed',
+    AUDIO_DOWNLOAD_FAILED: 'Audio download failed',
+    PLAYLIST_DOWNLOAD_FAILED: 'Playlist download failed',
+    EMPTY_FILE: 'Downloaded file is empty'
+};
+
+const AUTO_HIDE_DELAY = 8000;
+const CLEANUP_DELAY = 100;
+const SUCCESS_DISPLAY_DELAY = 3000;
+
 let currentUrl = '';
 
 /**
@@ -22,7 +50,7 @@ function showError(msg) {
     // Auto-hide after 8 seconds
     setTimeout(() => {
         errorBox.style.display = 'none';
-    }, 8000);
+    }, AUTO_HIDE_DELAY);
 }
 
 /**
@@ -138,13 +166,13 @@ async function getVideoInfo() {
     const url = urlInput.value.trim();
     
     if (!url) {
-        showError('Please enter a YouTube URL');
+        showError(ERROR_MESSAGES.NO_URL);
         return;
     }
     
     // Basic URL validation
     if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
-        showError('Please enter a valid YouTube URL');
+        showError(ERROR_MESSAGES.INVALID_URL);
         return;
     }
 
@@ -159,9 +187,9 @@ async function getVideoInfo() {
     btn.innerHTML = '<span class="spinner"></span> Loading...';
 
     try {
-        const response = await fetch('/api/info', {
+        const response = await fetch(API_ENDPOINTS.INFO, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { [HTTP_HEADERS.CONTENT_TYPE]: 'application/json' },
             body: JSON.stringify({ url })
         });
 
@@ -289,7 +317,7 @@ async function getVideoInfo() {
         updateProgress(100, 'Ready!');
 
     } catch (err) {
-        showError(err.message || 'Failed to fetch video information');
+        showError(err.message || ERROR_MESSAGES.FETCH_INFO_FIRST);
     } finally {
         showProgress(false);
         btn.disabled = false;
@@ -303,12 +331,12 @@ async function getVideoInfo() {
  */
 async function downloadVideo(quality) {
     if (!currentUrl) {
-        showError('Please fetch video information first');
+        showError(ERROR_MESSAGES.FETCH_INFO_FIRST);
         return;
     }
     
     if (!quality || typeof quality !== 'string') {
-        showError('Invalid quality selection');
+        showError(ERROR_MESSAGES.INVALID_QUALITY);
         return;
     }
     
@@ -316,15 +344,15 @@ async function downloadVideo(quality) {
     updateProgress(5, 'Starting download...');
 
     try {
-        const response = await fetch('/api/download/video', {
+        const response = await fetch(API_ENDPOINTS.DOWNLOAD_VIDEO, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { [HTTP_HEADERS.CONTENT_TYPE]: 'application/json' },
             body: JSON.stringify({ url: currentUrl, quality })
         });
 
         if (!response.ok) {
-            const err = await response.json().catch(() => ({ error: 'Download failed' }));
-            throw new Error(err.error || 'Download failed');
+            const err = await response.json().catch(() => ({ error: ERROR_MESSAGES.DOWNLOAD_FAILED }));
+            throw new Error(err.error || ERROR_MESSAGES.DOWNLOAD_FAILED);
         }
 
         updateProgress(50, 'Downloading...');
@@ -332,13 +360,13 @@ async function downloadVideo(quality) {
         const blob = await response.blob();
         
         if (!blob || blob.size === 0) {
-            throw new Error('Downloaded file is empty');
+            throw new Error(ERROR_MESSAGES.EMPTY_FILE);
         }
         
         const url = window.URL.createObjectURL(blob);
         
         // Extract filename from Content-Disposition header
-        const contentDisposition = response.headers.get('Content-Disposition');
+        const contentDisposition = response.headers.get(HTTP_HEADERS.CONTENT_DISPOSITION);
         let filename = `video_${quality}.mp4`;
         
         if (contentDisposition && contentDisposition.includes('filename=')) {
@@ -360,13 +388,13 @@ async function downloadVideo(quality) {
         setTimeout(() => {
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
-        }, 100);
+        }, CLEANUP_DELAY);
 
         updateProgress(100, 'Download complete!');
-        setTimeout(() => showProgress(false), 3000);
+        setTimeout(() => showProgress(false), SUCCESS_DISPLAY_DELAY);
 
     } catch (err) {
-        showError(err.message || 'Download failed');
+        showError(err.message || ERROR_MESSAGES.DOWNLOAD_FAILED);
         showProgress(false);
     }
 }
@@ -376,7 +404,7 @@ async function downloadVideo(quality) {
  */
 async function downloadAudio() {
     if (!currentUrl) {
-        showError('Please fetch video information first');
+        showError(ERROR_MESSAGES.FETCH_INFO_FIRST);
         return;
     }
     
@@ -384,15 +412,15 @@ async function downloadAudio() {
     updateProgress(5, 'Converting to MP3...');
 
     try {
-        const response = await fetch('/api/download/audio', {
+        const response = await fetch(API_ENDPOINTS.DOWNLOAD_AUDIO, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { [HTTP_HEADERS.CONTENT_TYPE]: 'application/json' },
             body: JSON.stringify({ url: currentUrl })
         });
 
         if (!response.ok) {
-            const err = await response.json().catch(() => ({ error: 'Download failed' }));
-            throw new Error(err.error || 'Download failed');
+            const err = await response.json().catch(() => ({ error: ERROR_MESSAGES.DOWNLOAD_FAILED }));
+            throw new Error(err.error || ERROR_MESSAGES.DOWNLOAD_FAILED);
         }
 
         updateProgress(50, 'Downloading...');
@@ -400,13 +428,13 @@ async function downloadAudio() {
         const blob = await response.blob();
         
         if (!blob || blob.size === 0) {
-            throw new Error('Downloaded file is empty');
+            throw new Error(ERROR_MESSAGES.EMPTY_FILE);
         }
         
         const url = window.URL.createObjectURL(blob);
         
         // Extract filename from Content-Disposition header
-        const contentDisposition = response.headers.get('Content-Disposition');
+        const contentDisposition = response.headers.get(HTTP_HEADERS.CONTENT_DISPOSITION);
         let filename = 'audio.mp3';
         
         if (contentDisposition && contentDisposition.includes('filename=')) {
@@ -428,13 +456,13 @@ async function downloadAudio() {
         setTimeout(() => {
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
-        }, 100);
+        }, CLEANUP_DELAY);
 
         updateProgress(100, 'Download complete!');
-        setTimeout(() => showProgress(false), 3000);
+        setTimeout(() => showProgress(false), SUCCESS_DISPLAY_DELAY);
 
     } catch (err) {
-        showError(err.message || 'Audio download failed');
+        showError(err.message || ERROR_MESSAGES.AUDIO_DOWNLOAD_FAILED);
         showProgress(false);
     }
 }
@@ -445,12 +473,12 @@ async function downloadAudio() {
  */
 async function downloadPlaylist(quality) {
     if (!currentUrl) {
-        showError('Please fetch playlist information first');
+        showError(ERROR_MESSAGES.FETCH_INFO_FIRST);
         return;
     }
     
     if (!quality || typeof quality !== 'string') {
-        showError('Invalid quality selection');
+        showError(ERROR_MESSAGES.INVALID_QUALITY);
         return;
     }
     
@@ -458,15 +486,15 @@ async function downloadPlaylist(quality) {
     updateProgress(5, 'Downloading playlist...');
 
     try {
-        const response = await fetch('/api/download/playlist', {
+        const response = await fetch(API_ENDPOINTS.DOWNLOAD_PLAYLIST, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { [HTTP_HEADERS.CONTENT_TYPE]: 'application/json' },
             body: JSON.stringify({ url: currentUrl, quality })
         });
 
         if (!response.ok) {
-            const err = await response.json().catch(() => ({ error: 'Playlist download failed' }));
-            throw new Error(err.error || 'Playlist download failed');
+            const err = await response.json().catch(() => ({ error: ERROR_MESSAGES.PLAYLIST_DOWNLOAD_FAILED }));
+            throw new Error(err.error || ERROR_MESSAGES.PLAYLIST_DOWNLOAD_FAILED);
         }
 
         const data = await response.json();
@@ -489,7 +517,7 @@ async function downloadPlaylist(quality) {
         }
 
     } catch (err) {
-        showError(err.message || 'Playlist download failed');
+        showError(err.message || ERROR_MESSAGES.PLAYLIST_DOWNLOAD_FAILED);
     } finally {
         showProgress(false);
     }

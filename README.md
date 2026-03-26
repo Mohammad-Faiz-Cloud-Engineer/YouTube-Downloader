@@ -17,6 +17,7 @@ A full-featured YouTube video and audio downloader with a modern web interface.
 
 - Node.js (v14 or higher)
 - npm or yarn
+- **FFmpeg** (REQUIRED for high-quality video downloads)
 
 ## Installation
 
@@ -30,6 +31,29 @@ cd yt-downloader
 ```bash
 npm install
 ```
+
+3. **Install FFmpeg (CRITICAL):**
+
+**Ubuntu/Debian:**
+```bash
+sudo apt update && sudo apt install ffmpeg -y
+```
+
+**macOS:**
+```bash
+brew install ffmpeg
+```
+
+**Windows:**
+- Download from https://ffmpeg.org/download.html
+- Extract and add to PATH
+
+**Verify installation:**
+```bash
+ffmpeg -version
+```
+
+> ⚠️ **Important:** Without FFmpeg, high-quality downloads (720p+) will fail or have no audio. FFmpeg is required to merge video and audio streams.
 
 ## Usage
 

@@ -22,6 +22,17 @@ const YT_DLP_BIN = path.join(__dirname, 'node_modules', 'youtube-dl-exec', 'bin'
 const MAX_TITLE_LENGTH = 100;
 const CLEANUP_DELAY = 5000;
 
+// HTTP Headers Constants
+const CONTENT_TYPE_VIDEO = 'video/mp4';
+const CONTENT_TYPE_AUDIO = 'audio/mpeg';
+const HEADER_CONTENT_DISPOSITION = 'Content-Disposition';
+const HEADER_CACHE_CONTROL = 'Cache-Control';
+
+// URL Constants
+const YOUTUBE_BASE_URL = 'https://www.youtube.com';
+const YOUTUBE_PLAYLIST_URL = `${YOUTUBE_BASE_URL}/playlist?list=`;
+const YOUTUBE_DEFAULT_THUMBNAIL = 'https://i.ytimg.com/vi/default/hqdefault.jpg';
+
 if (!fs.existsSync(DOWNLOADS_DIR)) {
     fs.mkdirSync(DOWNLOADS_DIR, { recursive: true });
 }
@@ -117,7 +128,7 @@ app.post('/api/info', async (req, res) => {
             const output = await execYtdl([
                 '--flat-playlist', 
                 '--print', '%(title)s|%(id)s|%(duration)s',
-                `https://www.youtube.com/playlist?list=${playlistId}`
+                `${YOUTUBE_PLAYLIST_URL}${playlistId}`
             ]);
             
             const lines = output.trim().split('\n').filter(l => l);
@@ -135,33 +146,44 @@ app.post('/api/info', async (req, res) => {
                 isPlaylist: true,
                 playlistCount: lines.length,
                 videos: videos,
-                thumbnail: 'https://i.ytimg.com/vi/default/hqdefault.jpg'
+                thumbnail: YOUTUBE_DEFAULT_THUMBNAIL
             });
         }
 
         const jsonOutput = await execYtdl(['--dump-json', '--no-playlist', url]);
         const videoData = JSON.parse(jsonOutput);
 
-        const formatsOutput = await execYtdl(['--list-formats', '--no-playlist', url]);
-        
+        // Get all available formats with detailed information
         const qualities = [];
-        const lines = formatsOutput.split('\n');
         const seenHeights = new Set();
         
-        for (const line of lines) {
-            const match = line.match(/(\d+)\s+(\w+)\s+(\d+x\d+)/);
-            if (match && match[2] === 'mp4') {
-                const height = parseInt(match[3].split('x')[1], 10);
-                if (!seenHeights.has(height)) {
-                    seenHeights.add(height);
-                    qualities.push({
-                        formatId: match[1],
-                        resolution: match[3],
-                        height: height
-                    });
+        // Parse formats from JSON for accurate data
+        if (videoData.formats && Array.isArray(videoData.formats)) {
+            videoData.formats.forEach(format => {
+                // Only include video formats with height information
+                if (format.height && format.vcodec && format.vcodec !== 'none') {
+                    const height = parseInt(format.height, 10);
+                    
+                    // Skip if we already have this height
+                    if (seenHeights.has(height)) return;
+                    
+                    // Only include reasonable video qualities
+                    if (height >= 144 && height <= 4320) {
+                        seenHeights.add(height);
+                        qualities.push({
+                            formatId: format.format_id,
+                            resolution: `${format.width || '?'}x${format.height}`,
+                            height: height,
+                            ext: format.ext || 'mp4',
+                            vcodec: format.vcodec,
+                            fps: format.fps || 30
+                        });
+                    }
                 }
-            }
+            });
         }
+        
+        // Sort by height (highest first)
         qualities.sort((a, b) => b.height - a.height);
 
         res.json({
@@ -203,9 +225,16 @@ app.post('/api/download/video', async (req, res) => {
 
         const outputPath = path.join(DOWNLOADS_DIR, `${title}.mp4`);
 
+        // Verify the format exists
+        const selectedFormat = videoData.formats?.find(f => f.format_id === quality);
+        if (!selectedFormat) {
+            return res.status(400).json({ error: 'Selected quality format not available' });
+        }
+
         // Use the selected quality format with best audio
-        // Format: video[format_id]+bestaudio/best ensures high quality video with audio
-        const formatString = `${quality}+bestaudio[ext=m4a]/bestaudio`;
+        // Format: quality+bestaudio will download and merge if ffmpeg is available
+        // If ffmpeg not available, falls back to best combined format
+        const formatString = `${quality}+bestaudio/best`;
         
         await execYtdl([
             '-f', formatString,
@@ -217,45 +246,70 @@ app.post('/api/download/video', async (req, res) => {
             url
         ]);
 
+        // Find the downloaded file - could be merged or separate files
         let finalFile = '';
         let finalPath = '';
         
-        const downloadedFiles = fs.readdirSync(DOWNLOADS_DIR).filter(f => !f.endsWith('.part') && !f.endsWith('.temp'));
+        const downloadedFiles = fs.readdirSync(DOWNLOADS_DIR).filter(f => 
+            !f.endsWith('.part') && 
+            !f.endsWith('.temp') &&
+            !f.endsWith('.ytdl') &&
+            f.includes(title)
+        );
         
+        // Look for the merged file first
         for (const f of downloadedFiles) {
-            if (f.includes(title)) {
-                const filePath = path.join(DOWNLOADS_DIR, f);
-                const ext = path.extname(f).toLowerCase();
-                
-                if (ext === '.mp4') {
-                    finalFile = f;
-                    finalPath = filePath;
-                    break;
-                } else if (ext === '.mkv' || ext === '.webm') {
-                    // Rename non-mp4 to mp4
-                    const cleanName = `${title}.mp4`;
-                    const newPath = path.join(DOWNLOADS_DIR, cleanName);
-                    if (!fs.existsSync(newPath)) {
-                        fs.renameSync(filePath, newPath);
+            const filePath = path.join(DOWNLOADS_DIR, f);
+            const ext = path.extname(f).toLowerCase();
+            
+            // Check if it's the main output file (not a fragment)
+            if (!f.includes('.f') && (ext === '.mp4' || ext === '.mkv' || ext === '.webm')) {
+                finalFile = f;
+                finalPath = filePath;
+                break;
+            }
+        }
+        
+        // If no merged file found, look for video-only file (ffmpeg not available)
+        if (!finalPath) {
+            for (const f of downloadedFiles) {
+                if (f.includes(`.f${quality}.`)) {
+                    const filePath = path.join(DOWNLOADS_DIR, f);
+                    const ext = path.extname(f).toLowerCase();
+                    
+                    if (ext === '.mp4' || ext === '.mkv' || ext === '.webm') {
+                        // Rename to clean filename
+                        const cleanName = `${title}.mp4`;
+                        const newPath = path.join(DOWNLOADS_DIR, cleanName);
+                        if (!fs.existsSync(newPath)) {
+                            fs.renameSync(filePath, newPath);
+                        }
+                        finalFile = cleanName;
+                        finalPath = newPath;
+                        
+                        // Clean up audio file if exists
+                        downloadedFiles.forEach(df => {
+                            if (df.includes('.f') && df !== f) {
+                                cleanupFile(path.join(DOWNLOADS_DIR, df));
+                            }
+                        });
+                        break;
                     }
-                    finalFile = cleanName;
-                    finalPath = newPath;
-                    break;
                 }
             }
         }
 
         if (!finalPath || !fs.existsSync(finalPath)) {
-            return res.status(400).json({ error: 'Download failed - file not found' });
+            return res.status(400).json({ error: 'Download failed - file not found. Please ensure ffmpeg is installed for high-quality downloads.' });
         }
 
-        res.setHeader('Content-Disposition', `attachment; filename="${finalFile}"`);
-        res.setHeader('Content-Type', 'video/mp4');
-        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader(HEADER_CONTENT_DISPOSITION, `attachment; filename="${finalFile}"`);
+        res.setHeader('Content-Type', CONTENT_TYPE_VIDEO);
+        res.setHeader(HEADER_CACHE_CONTROL, 'no-cache');
         
         const fileStream = fs.createReadStream(finalPath);
         
-        fileStream.on('error', (streamError) => {
+        fileStream.on('error', () => {
             cleanupFile(finalPath);
             if (!res.headersSent) {
                 res.status(500).json({ error: 'Stream error occurred' });
@@ -264,6 +318,9 @@ app.post('/api/download/video', async (req, res) => {
         
         fileStream.on('close', () => {
             cleanupFile(finalPath);
+            // Clean up any remaining fragment files
+            const remainingFiles = fs.readdirSync(DOWNLOADS_DIR).filter(f => f.includes(title) && f.includes('.f'));
+            remainingFiles.forEach(f => cleanupFile(path.join(DOWNLOADS_DIR, f)));
         });
         
         fileStream.pipe(res);
@@ -334,12 +391,12 @@ app.post('/api/download/audio', async (req, res) => {
             }
         }
 
-        res.setHeader('Content-Disposition', `attachment; filename="${actualFile}"`);
-        res.setHeader('Content-Type', 'audio/mpeg');
-        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader(HEADER_CONTENT_DISPOSITION, `attachment; filename="${actualFile}"`);
+        res.setHeader('Content-Type', CONTENT_TYPE_AUDIO);
+        res.setHeader(HEADER_CACHE_CONTROL, 'no-cache');
         
-        res.download(actualPath, actualFile, (downloadError) => {
-            if (downloadError && !res.headersSent) {
+        res.download(actualPath, actualFile, (err) => {
+            if (err && !res.headersSent) {
                 res.status(500).json({ error: 'Download error occurred' });
             }
             setTimeout(() => cleanupFile(actualPath), CLEANUP_DELAY);
@@ -369,7 +426,7 @@ app.post('/api/download/playlist', async (req, res) => {
         }
 
         // Use selected quality with best audio for high quality output
-        const formatStr = `${quality}+bestaudio[ext=m4a]/bestaudio`;
+        const formatStr = `${quality}+bestaudio/best`;
 
         await execYtdl([
             '-f', formatStr,
@@ -377,8 +434,9 @@ app.post('/api/download/playlist', async (req, res) => {
             '--yes-playlist',
             '--no-check-certificate',
             '--no-warnings',
+            '--recode-video', 'mp4',
             '-o', path.join(DOWNLOADS_DIR, '%(title)s.%(ext)s'),
-            `https://www.youtube.com/playlist?list=${playlistId}`
+            `${YOUTUBE_PLAYLIST_URL}${playlistId}`
         ]);
 
         const files = fs.readdirSync(DOWNLOADS_DIR).filter(f => !f.endsWith('.part') && !f.startsWith('temp_'));
@@ -395,5 +453,24 @@ app.post('/api/download/playlist', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    // Server started successfully
+    // Check for ffmpeg availability on startup
+    const { exec } = require('child_process');
+    exec('ffmpeg -version', (error) => {
+        const separator = '='.repeat(60);
+        if (error) {
+            console.warn(`\n${separator}`);
+            console.warn('WARNING: FFmpeg NOT FOUND!');
+            console.warn(separator);
+            console.warn('High-quality downloads (720p+) will NOT work correctly.');
+            console.warn('Users will get low-quality videos instead of HD/4K.');
+            console.warn('');
+            console.warn('SOLUTION: Install FFmpeg');
+            console.warn('Ubuntu/Debian: sudo apt install ffmpeg -y');
+            console.warn('macOS: brew install ffmpeg');
+            console.warn(`${separator}\n`);
+        } else {
+            console.info('FFmpeg detected - High-quality downloads enabled');
+        }
+        console.info(`YouTube Downloader running at http://localhost:${PORT}`);
+    });
 });
