@@ -23,7 +23,7 @@ A full-featured YouTube video and audio downloader with a modern web interface.
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/Mohammad-Faiz-Cloud-Engineer/YouTube-Downloader.git
 cd yt-downloader
 ```
 
