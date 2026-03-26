@@ -1,10 +1,3 @@
-/**
- * YouTube Downloader - Client Side Script
- * Creator & Author: Mohammad Faiz
- * Repository: https://github.com/Mohammad-Faiz-Cloud-Engineer/YouTube-Downloader
- */
-
-// Constants
 const API_ENDPOINTS = {
     INFO: '/api/info',
     DOWNLOAD_VIDEO: '/api/download/video',
@@ -31,23 +24,23 @@ const ERROR_MESSAGES = {
 const AUTO_HIDE_DELAY = 8000;
 const CLEANUP_DELAY = 100;
 const SUCCESS_DISPLAY_DELAY = 3000;
+const YOUTUBE_DOMAIN_REGEX = /^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//;
 
 let currentUrl = '';
 
-/**
- * Display error message to user
- * @param {string} msg - Error message to display
- */
 function showError(msg) {
-    if (!msg || typeof msg !== 'string') return;
+    if (!msg || typeof msg !== 'string') {
+        return;
+    }
     
     const errorBox = document.getElementById('errorBox');
-    if (!errorBox) return;
+    if (!errorBox) {
+        return;
+    }
     
     errorBox.textContent = msg;
     errorBox.style.display = 'block';
     
-    // Auto-hide after 8 seconds
     setTimeout(() => {
         errorBox.style.display = 'none';
     }, AUTO_HIDE_DELAY);
@@ -95,13 +88,10 @@ function updateProgress(percent, text) {
     }
 }
 
-/**
- * Format duration in seconds to readable time string
- * @param {number} seconds - Duration in seconds
- * @returns {string} Formatted duration (HH:MM:SS or MM:SS)
- */
 function formatDuration(seconds) {
-    if (!seconds || typeof seconds !== 'number' || seconds < 0) return '0:00';
+    if (!seconds || typeof seconds !== 'number' || seconds < 0) {
+        return '0:00';
+    }
     
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -156,12 +146,11 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
-/**
- * Fetch video information from YouTube URL
- */
 async function getVideoInfo() {
     const urlInput = document.getElementById('urlInput');
-    if (!urlInput) return;
+    if (!urlInput) {
+        return;
+    }
     
     const url = urlInput.value.trim();
     
@@ -170,8 +159,7 @@ async function getVideoInfo() {
         return;
     }
     
-    // Basic URL validation
-    if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
+    if (!YOUTUBE_DOMAIN_REGEX.test(url)) {
         showError(ERROR_MESSAGES.INVALID_URL);
         return;
     }
@@ -325,10 +313,6 @@ async function getVideoInfo() {
     }
 }
 
-/**
- * Download video in selected quality
- * @param {string} quality - Format ID for quality
- */
 async function downloadVideo(quality) {
     if (!currentUrl) {
         showError(ERROR_MESSAGES.FETCH_INFO_FIRST);
@@ -399,9 +383,6 @@ async function downloadVideo(quality) {
     }
 }
 
-/**
- * Download audio as MP3
- */
 async function downloadAudio() {
     if (!currentUrl) {
         showError(ERROR_MESSAGES.FETCH_INFO_FIRST);
@@ -467,10 +448,6 @@ async function downloadAudio() {
     }
 }
 
-/**
- * Download entire playlist in selected quality
- * @param {string} quality - Format ID for quality
- */
 async function downloadPlaylist(quality) {
     if (!currentUrl) {
         showError(ERROR_MESSAGES.FETCH_INFO_FIRST);
@@ -523,7 +500,6 @@ async function downloadPlaylist(quality) {
     }
 }
 
-// Initialize event listeners when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     const urlInput = document.getElementById('urlInput');
     if (urlInput) {
